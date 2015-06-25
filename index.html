@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bezier timing function</title>
+    <style>
+    	body {
+    		background: black;
+    	}
+    	#wrap {
+    		position:relative;
+    		max-width: 500px;
+    		margin: 0 auto;
+    	}
+    	canvas{
+    		position:absolute;
+    		left:0;
+    		top:4em;
+    		background: snow;
+    		width: 100%;
+    		transform: scaleY(-1);
+    	}
+    	canvas:last-child{
+    		background: transparent;
+    	}
+        button {
+            padding:1em;
+            margin:1em;
+        }
+
+    </style>
+    <script type="text/javascript" src="bezier-polynomial.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+    
+    <script type="text/javascript">
+    	window.onload = function () {
+    		var c = document.createElement('canvas');
+    		c.width = 500;
+    		c.height = 500;
+    		document.querySelector('#wrap').appendChild(c);
+
+    		var ctx = c.getContext('2d');
+    		var sc = 250;
+    		ctx.translate(sc/2,sc/2)
+    		ctx.scale(sc,sc);
+    		ctx.lineWidth = 1/sc;
+
+    		ctx.beginPath();
+    		ctx.rect(0,0,1,1);
+    		ctx.strokeStyle = "rgba(0,0,100,0.1)";
+    		ctx.stroke();
+
+    		var d = [0,0,2,1,0,1,0];
+
+    		Bezier1D = BezierPolynomial(d);
+    		console.log ( Bezier1D(1) )
+    		ctx.beginPath();
+    		ctx.moveTo(0,0);
+    		for ( var t = 0; t <= 1; t += 0.01){
+    			var value = Bezier1D(t);
+    			ctx.lineTo(t, value);
+    		}
+    		ctx.lineTo(1,d[d.length-1])
+    		ctx.strokeStyle = "blue";
+    		ctx.stroke();
+
+    		// Create a second canvas for the animation
+    		var c2 = document.createElement('canvas');
+    		c2.width = 500;
+    		c2.height = 500;
+    		ctx2 = c2.getContext('2d');
+    		ctx2.translate(sc/2,sc/2)
+    		ctx2.scale(sc,sc);
+    		ctx2.lineWidth = 3/sc;
+    		ctx2.strokeStyle = "#333";
+
+    		document.querySelector('#wrap').appendChild(c2);
+
+    		var t = 0, raf = null;
+    		function frame() {
+    			t = t % 1;
+    			raf = requestAnimationFrame(frame);
+    			var value = Bezier1D(t);
+    			ctx2.clearRect(-0.5, -0.5,2,2)
+    			ctx2.beginPath();
+    			ctx2.arc(-1/10, value, 0.02, 0, 2*Math.PI);
+    			ctx2.stroke();
+    			ctx2.beginPath();
+    			ctx2.arc(t, -0.1, 0.02, 0, 2*Math.PI);
+    			ctx2.stroke();
+    			ctx2.beginPath();
+    			ctx2.arc(t, value, 0.02, 0, 2*Math.PI);
+
+    			ctx2.stroke();
+
+    			ctx2.save();
+    			ctx2.beginPath();
+    			ctx2.moveTo(-0.1,value);
+    			ctx2.lineTo(t,value);
+    			ctx2.lineTo (t, -0.1);
+    			ctx2.strokeStyle = "#aaa";
+    			ctx2.lineWidth = 1/sc;
+    			ctx2.stroke();
+    			ctx2.restore();
+
+    			t += 1/60;
+    		}
+    		frame();
+
+    		document.querySelector("button").addEventListener('click', function() {
+    			if ( raf ) {
+    				cancelAnimationFrame(raf);
+    				raf = null;
+    			}
+    			else {
+    				frame();
+    			}
+    		})
+
+    		TweenMax.to(document.querySelector('#wrap canvas'), 1, {borderRadius:'250px', repeat:-1, repeatDelay:0,
+				ease:new Ease(Bezier1D)
+			});	
+		}
+
+	
+    </script>
+  </head>
+  <body>
+    <div id="wrap">
+    	<button >stop/start</button>
+    </div>
+  </body>
+</html>
