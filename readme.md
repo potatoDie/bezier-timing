@@ -12,11 +12,7 @@ Bezier1D is the resulting timing function, taking an argument _t_ between 0 and 
 
 Within a GSAP tween define an ease with
 
-<<<<<<< HEAD
 	ease: new Ease(BezierPolynomial(0, 0.2, 0.8, 1))
-=======
-	ease: new Ease(BezierPolynomial([0, 0.2, 0.8, 1))
->>>>>>> origin/master
 
 ##Opportunities
 -	Create loops by giving the first and last control points the same value.
