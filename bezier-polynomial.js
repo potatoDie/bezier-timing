@@ -4,7 +4,6 @@
  * returns Bezier formula
  */
 function BezierPolynomial(d) {
-	console.log ( d )
 	/**
 	 * Calculate binomial coefficients
 	 * Recursion: Pascal's recurrence
@@ -35,7 +34,6 @@ function BezierPolynomial(d) {
 		for (var i = 0; i <= order; i++) {
 			b[i] = binomial(order, i);
 		}
-		console.log ( b )
 		
 		return (function(i,t){
 					return b[i] * Math.pow(1-t, order-i) * Math.pow(t,i)
@@ -43,17 +41,10 @@ function BezierPolynomial(d) {
 	})(d.length - 1);
 
 	return (function(t){
-				var sum = 0;
-				for ( var i = 0; i < d.length; i++ ) {
-					sum += bernsteinPolynomials(i, t) * d[i];
-				}
-				return sum;
-
-				// var total = d.reduce(function(sum,d, i){
-				// 	return sum + bernsteinPolynomials(i, t) * d;
-				// });
-
-				// return total;
-
+			var total = d.reduce(function(sum,d, i){
+				return sum + bernsteinPolynomials(i, t) * d;
 			});
+
+			return total;
+		});
 }

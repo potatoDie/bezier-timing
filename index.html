@@ -4,84 +4,114 @@
     <meta charset="utf-8">
     <title>Bezier timing function</title>
     <style>
+      @import url(http://fonts.googleapis.com/css?family=Open+Sans:400);
     	body {
-    		background: black;
+        background: #261A06;
+        font: 400 normal 120%/1.4 "Open Sans", sans-serif;         
+        color:snow;
     	}
     	#wrap {
-    		position:relative;
-    		max-width: 500px;
-    		margin: 0 auto;
-    	}
-    	canvas{
-    		position:absolute;
-    		left:0;
-    		top:4em;
-    		background: snow;
-    		width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      figure {
+        position:relative;
+        width: 50%;
+        min-width: 400px;
+        float:left;
+        margin:0;
+        margin-top:50px;
+        padding:0;
+      }
+      main {
+        width:45%;
+        margin-right:5%;
+        min-width: 400px;
+        float:left;
+      }
+      canvas{
+        position:absolute;
+        left:0;
+        top:0em;
+        background: snow;
+        width: 100%;
     		transform: scaleY(-1);
     	}
     	canvas:last-child{
     		background: transparent;
     	}
-        button {
-            padding:1em;
-            margin:1em;
-        }
+      button, input {
+        padding:.2em;
+        margin:.1em;
+        font-size: 1.4em;
+        border-radius:6px;
+      }
+      input {
+        max-width: 100%;
+        transition:0.3s;
+      }
+      input:focus{
+        background: #fff37d;
+      }
+
+      pre {
+        white-space: normal;
+        padding-left: 5%;
+      }  
+      a {
+        color:lightseagreen;
+      }
 
     </style>
     <script type="text/javascript" src="bezier-polynomial.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
     
     <script type="text/javascript">
     	window.onload = function () {
-    		var c = document.createElement('canvas');
-    		c.width = 500;
-    		c.height = 500;
-    		document.querySelector('#wrap').appendChild(c);
+        var t = 0, raf = null;
+        var Bezier1D;
+        var sc = 250;
 
-    		var ctx = c.getContext('2d');
-    		var sc = 250;
-    		ctx.translate(sc/2,sc/2)
-    		ctx.scale(sc,sc);
-    		ctx.lineWidth = 1/sc;
+        // Create canvas for displaying the graph (in background)
+        var ctx = (function(){
+          var c = document.createElement('canvas');
+          c.width = 500;
+          c.height = 500;
+          document.querySelector('#wrap figure').appendChild(c);
 
-    		ctx.beginPath();
-    		ctx.rect(0,0,1,1);
-    		ctx.strokeStyle = "rgba(0,0,100,0.1)";
-    		ctx.stroke();
+          var context = c.getContext('2d');
+          context.translate(sc/2,sc/2)
+          context.scale(sc,sc);
+          context.lineWidth = 1/sc;
 
-    		var d = [0,0,2,1,0,1,0];
+          return context;
+        }());
 
-    		Bezier1D = BezierPolynomial(d);
-    		console.log ( Bezier1D(1) )
-    		ctx.beginPath();
-    		ctx.moveTo(0,0);
-    		for ( var t = 0; t <= 1; t += 0.01){
-    			var value = Bezier1D(t);
-    			ctx.lineTo(t, value);
-    		}
-    		ctx.lineTo(1,d[d.length-1])
-    		ctx.strokeStyle = "blue";
-    		ctx.stroke();
+    		// Create a second canvas for the graph points animation
+        var ctx2 = (function(){
+          var c2 = document.createElement('canvas');
+          c2.width = 500;
+          c2.height = 500;
+          context = c2.getContext('2d');
+          context.translate(sc/2,sc/2)
+          context.scale(sc,sc);
+          context.lineWidth = 3/sc;
+          context.strokeStyle = "#333";
 
-    		// Create a second canvas for the animation
-    		var c2 = document.createElement('canvas');
-    		c2.width = 500;
-    		c2.height = 500;
-    		ctx2 = c2.getContext('2d');
-    		ctx2.translate(sc/2,sc/2)
-    		ctx2.scale(sc,sc);
-    		ctx2.lineWidth = 3/sc;
-    		ctx2.strokeStyle = "#333";
+          document.querySelector('#wrap figure').appendChild(c2);
 
-    		document.querySelector('#wrap').appendChild(c2);
+          return context;
+        }());  
 
-    		var t = 0, raf = null;
-    		function frame() {
+        drawBezier();
+        frame();
+
+        function frame() {
     			t = t % 1;
     			raf = requestAnimationFrame(frame);
     			var value = Bezier1D(t);
-    			ctx2.clearRect(-0.5, -0.5,2,2)
+    			ctx2.clearRect(-0.5, -0.5,2,2);
+
+          // Draw the point on the graph and it's projections on the axes
     			ctx2.beginPath();
     			ctx2.arc(-1/10, value, 0.02, 0, 2*Math.PI);
     			ctx2.stroke();
@@ -93,6 +123,7 @@
 
     			ctx2.stroke();
 
+          // Horizontal lines between those points
     			ctx2.save();
     			ctx2.beginPath();
     			ctx2.moveTo(-0.1,value);
@@ -103,31 +134,88 @@
     			ctx2.stroke();
     			ctx2.restore();
 
+          // Think of something to animate
+          // Preferably sth that makes sense outside the limits
+          if (value < 0){
+            value = -value;
+          }
+          else if (value > 1) {
+            value = 1-(value % 1);
+          }
+
+          document.querySelector('#wrap canvas').style.borderRadius = value * 250 + "px";
+
     			t += 1/60;
     		}
-    		frame();
 
-    		document.querySelector("button").addEventListener('click', function() {
-    			if ( raf ) {
-    				cancelAnimationFrame(raf);
-    				raf = null;
-    			}
-    			else {
-    				frame();
-    			}
-    		})
+        function drawBezier() {
+            // Read array of numbers from input
+            var data = document.querySelector('input')
+              .value.match(/[-+]?[0-9]*\.?[0-9]+/g)
+              .map(function(n){
+                  return parseFloat(n);
+              });
 
-    		TweenMax.to(document.querySelector('#wrap canvas'), 1, {borderRadius:'250px', repeat:-1, repeatDelay:0,
-				ease:new Ease(Bezier1D)
-			});	
-		}
+            Bezier1D = BezierPolynomial(data);
 
-	
+            ctx.clearRect(-.5,-.5,2,2);
+
+            // Redraw the background for the graph
+            ctx.beginPath();
+            ctx.rect(0,0,1,1);
+            ctx.strokeStyle = "rgba(0,0,100,0.1)";
+            ctx.stroke();
+
+            // Draw the timing function
+            ctx.beginPath();
+            ctx.moveTo(0,0);
+            for ( var t = 0; t <= 1; t += 0.01){
+              var value = Bezier1D(t);
+              ctx.lineTo(t, value);
+            }
+            ctx.lineTo(1,data[data.length-1])
+            ctx.strokeStyle = "rgba(0,0,0,.2)";
+            ctx.stroke();
+
+            updateSampleCode(data);
+        };
+
+        function updateSampleCode(d) {
+          document.querySelector('pre span').innerHTML = d.join();
+        }
+
+        document.querySelector("button").addEventListener('click', function() {
+            if ( raf ) {
+                cancelAnimationFrame(raf);
+                raf = null;
+            }
+            else {
+                frame();
+            }
+        });
+        document.querySelector('input').addEventListener('keyup', drawBezier);
+        setTimeout(function(){document.querySelector('input').focus();},1000);
+
+      }
     </script>
   </head>
   <body>
     <div id="wrap">
-    	<button >stop/start</button>
+      <main>
+        <h1>Bezier timing function</h1>
+        <p>Toy to demonstrate an alternative for easing functions. Easing is often done with Bezier curves controlled by points in the plane. This solution uses one-dimensional control points.
+        </p>
+        <p>I have tried to explain the advantages (in some cases) on <a href="https://github.com/potatoDie/bezier-timing">GitHub</a></p>  
+        <button >stop/start</button>
+        <input type="text" value="0,1,0.3,1"/>
+        <p>Edit the values array above, then use the following code for your JavaScript animations.
+        </p>
+        <pre>
+          &lt;script src="bezier-polynomial.js"&gt;&lt;/script&gt;<br/>
+          var myCustomBezier = BezierPolynomial(<span></span>);
+        </pre>
+      </main>
+      <figure></figure>
     </div>
   </body>
 </html>

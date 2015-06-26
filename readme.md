@@ -13,3 +13,6 @@ Bezier1D is the resulting timing function, taking an argument _t_ between 0 and 
 ##Opportunities
 -	Create loops by giving the first and last control points the same value.
 -	Add more _keyframes_ by supplying a longer list. 
+
+##Example
+For an example and an editor please visit http://www.potatodie.nl/bezier-timing/.
