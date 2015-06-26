@@ -11,6 +11,7 @@ This is a simpler (and I think therefor more versatile) method, that can be used
 Bezier1D is the resulting timing function, taking an argument _t_ between 0 and 1. 
 
 Within a GSAP tween define an ease with
+
 	ease: new Ease(BezierPolynomial([0, 0.2, 0.8, 1))
 
 ##Opportunities
