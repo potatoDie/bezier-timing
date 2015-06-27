@@ -48,10 +48,10 @@
       }
       input {
         max-width: 100%;
-        transition:0.3s;
+        transition:0.5s cubic-bezier(.06,1,.05,1);
       }
       input:focus{
-        background: #fff37d;
+        background: hsla(50,100%,75%,1);
       }
 
       pre {
@@ -71,7 +71,7 @@
         var Bezier1D;
         var sc = 250;
 
-        // Create canvas for displaying the graph (in background)
+        // Create canvas for displaying the graph and control points
         var ctx = (function(){
           var c = document.createElement('canvas');
           c.width = 500;
@@ -103,7 +103,7 @@
         }());  
 
         drawBezier();
-        frame();
+        // frame();
 
         function frame() {
     			t = t % 1;
@@ -156,14 +156,28 @@
                   return parseFloat(n);
               });
 
-            Bezier1D = BezierPolynomial(data);
+            // Check there are at least 2 points
+            if ( data.length < 2) return;
 
+            Bezier1D = BezierPolynomial(data);
             ctx.clearRect(-.5,-.5,2,2);
 
             // Redraw the background for the graph
             ctx.beginPath();
             ctx.rect(0,0,1,1);
             ctx.strokeStyle = "rgba(0,0,100,0.1)";
+            ctx.stroke();
+
+            // Draw the path connecting the control points
+            var radius = 4/sc;
+            ctx.beginPath();
+            ctx.arc(0, data[0], radius, 0, 2*Math.PI);
+            ctx.moveTo(0,data[0]);
+            for ( var i = 1; i < data.length; i++){
+              ctx.lineTo(i/(data.length-1), data[i]);
+              ctx.arc(i/(data.length-1), data[i], radius, 0, 2*Math.PI);
+              ctx.moveTo(i/(data.length-1), data[i]);
+            }
             ctx.stroke();
 
             // Draw the timing function
@@ -174,9 +188,12 @@
               ctx.lineTo(t, value);
             }
             ctx.lineTo(1,data[data.length-1])
-            ctx.strokeStyle = "rgba(0,0,0,.2)";
+            ctx.save();
+            ctx.strokeStyle = "#20B2AA";
+            ctx.lineWidth = 4/sc;
             ctx.stroke();
-
+            ctx.restore();
+            
             updateSampleCode(data);
         };
 
