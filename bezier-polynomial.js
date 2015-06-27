@@ -41,10 +41,10 @@ function BezierPolynomial(d) {
 	})(d.length - 1);
 
 	return (function(t){
-			var total = d.reduce(function(sum,d, i){
-				return sum + bernsteinPolynomials(i, t) * d;
-			});
-
-			return total;
+			var sum = 0;
+			for (var i = 0; i < d.length; i++) {
+				sum += bernsteinPolynomials(i, t) * d[i];
+			};
+			return sum;
 		});
 }
