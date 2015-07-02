@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
     <title>Bezier timing function</title>
     <style>
       @import url(http://fonts.googleapis.com/css?family=Open+Sans:400);
@@ -35,6 +36,7 @@
         top:0em;
         background: snow;
         width: 100%;
+        -webkit-transform: scaleY(-1);
     		transform: scaleY(-1);
     	}
     	canvas:last-child{
@@ -45,6 +47,10 @@
         margin:.1em;
         font-size: 1.4em;
         border-radius:6px;
+      }
+      button {
+        background:hsla(1,0%,80%,1);
+        cursor:pointer;
       }
       input {
         max-width: 100%;
@@ -63,9 +69,10 @@
       }
 
     </style>
-    <script type="text/javascript" src="bezier-polynomial.js"></script>
+    <script src="rAF.js"></script>
+    <script src="bezier-polynomial.js"></script>
     
-    <script type="text/javascript">
+    <script>
     	window.onload = function () {
         var t = 0, raf = null;
         var Bezier1D;
@@ -103,7 +110,7 @@
         }());  
 
         drawBezier();
-        // frame();
+        frame();
 
         function frame() {
     			t = t % 1;
@@ -143,7 +150,8 @@
             value = 1-(value % 1);
           }
 
-          document.querySelector('#wrap canvas').style.borderRadius = value * 250 + "px";
+          var w = parseInt(getComputedStyle(ctx2.canvas).getPropertyValue('width'))
+          document.querySelector('#wrap canvas').style.borderRadius = value * w/2 + "px";
 
     			t += 1/60;
     		}
@@ -182,7 +190,7 @@
 
             // Draw the timing function
             ctx.beginPath();
-            ctx.moveTo(0,0);
+            ctx.moveTo(0,Bezier1D(0));
             for ( var t = 0; t <= 1; t += 0.01){
               var value = Bezier1D(t);
               ctx.lineTo(t, value);
@@ -193,7 +201,7 @@
             ctx.lineWidth = 4/sc;
             ctx.stroke();
             ctx.restore();
-            
+
             updateSampleCode(data);
         };
 
@@ -220,7 +228,7 @@
     <div id="wrap">
       <main>
         <h1>Bezier timing function</h1>
-        <p>Toy to demonstrate an alternative for easing functions. Easing is often done with Bezier curves controlled by points in the plane. This solution uses one-dimensional control points.
+        <p>Toy to demonstrate an alternative for easing functions as used in html5 animations. Easing is often done with Bezier curves controlled by points in the plane. This solution uses one-dimensional control points.
         </p>
         <p>I have tried to explain the advantages (in some cases) on <a href="https://github.com/potatoDie/bezier-timing">GitHub</a></p>  
         <button >stop/start</button>
@@ -229,7 +237,7 @@
         </p>
         <pre>
           &lt;script src="bezier-polynomial.js"&gt;&lt;/script&gt;<br/>
-          var myCustomBezier = BezierPolynomial(<span></span>);
+          var myCustomBezier = BezierPolynomial([<span></span>]);
         </pre>
       </main>
       <figure></figure>
